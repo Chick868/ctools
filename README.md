@@ -27,7 +27,7 @@ ctools 包含了两个部分：
 
 其中前 3 个在 ctools 根目录已经配置好了，分别代表
 
-1. `glibc-all-in-one`的路径，用于 patchelf 和 debug 符号加载
+1. `glibc-all-in-one`的路径，用于 patchelf 和 debug 符号加载。**由于文件夹较大，在仓库里不再上传，有需要可以到 [release 页面](https://github.com/Chick868/ctools/releases)下载完整版本。**
 2. `libs`的路径，用于 auto patch 时的快速 libc 库
 3. `glibc-source`，不同版本 glibc 的源码，用于进行源码调试。目录结构已经建好，但因为文件过大，所以这里不再上传，需要的请自行寻找资源。
 
